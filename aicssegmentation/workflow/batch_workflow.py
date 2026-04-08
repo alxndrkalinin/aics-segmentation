@@ -2,8 +2,6 @@ import numpy as np
 
 from datetime import datetime
 from typing import List, Union
-from aicsimageio import AICSImage
-from aicsimageio.writers import OmeTiffWriter
 from pathlib import Path
 from aicssegmentation.util.filesystem import FileSystemUtilities
 from aicssegmentation.exceptions import ArgumentNullError
@@ -108,6 +106,9 @@ class BatchWorkflow:
         next(self._execute_generator)
 
     def _execute_generator_func(self):
+        from aicsimageio import AICSImage  # lazy — only needed for batch file reading
+        from aicsimageio.writers import OmeTiffWriter  # lazy — only needed for batch file writing
+
         for f in self._input_files:
             try:
                 print(f"Start file {f.name}")
@@ -158,7 +159,7 @@ class BatchWorkflow:
             )
         self._write_to_log_file(report)
 
-    def _format_image_to_3d(self, image: AICSImage) -> np.ndarray:
+    def _format_image_to_3d(self, image) -> np.ndarray:
         """
         Format images in the way that aics-segmention expects for most workflows (3d, zyx)
 
