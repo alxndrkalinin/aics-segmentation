@@ -41,17 +41,10 @@ dev_requirements = [
 ]
 
 requirements = [
-    "aicsimageio>=4.0.5",
     "scipy>=1.1.0",
     "numpy>=1.15.1",
     "scikit-image",
-    "pandas>=0.23.4",
-    "itk",
-    "itkwidgets",
-    "jupyter",
-    "matplotlib",
-    "dask",
-    "napari",
+    "tifffile",
 ]
 
 extra_requirements = {

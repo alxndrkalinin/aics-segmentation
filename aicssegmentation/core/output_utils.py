@@ -1,7 +1,13 @@
 from pathlib import Path
 import numpy as np
 from skimage.morphology import erosion, ball
-from aicsimageio.writers import OmeTiffWriter
+import tifffile as tiff
+
+
+def _save_tiff(data: np.ndarray, output_file: Path) -> None:
+    """Save image data to a TIFF file."""
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    tiff.imwrite(str(output_file), data)
 
 
 def save_segmentation(
@@ -28,13 +34,12 @@ def save_segmentation(
     suffix: str
         the suffix to add to the output filename
     """
-    OmeTiffWriter.save(data=bw, uri=str(output_path / (fn + suffix + ".tiff")), dim_order="ZYX")
+    _save_tiff(bw, output_path / (fn + suffix + ".tiff"))
 
     if contour_flag:
         bd = generate_segmentation_contour(bw)
 
-        out_fn = str(output_path / (fn + suffix + "_contour.tiff"))
-        OmeTiffWriter.save(data=bd, uri=out_fn, dim_order="ZYX")
+        _save_tiff(bd, output_path / (fn + suffix + "_contour.tiff"))
 
 
 def generate_segmentation_contour(im):
@@ -58,6 +63,6 @@ def output_hook(im, names, out_flag, output_path, fn):
                 segmentation_type = names[i]
                 bw = im[i].astype(np.uint8)
                 bw[bw > 0] = 255
-                OmeTiffWriter.save(data=bw, uri=str(output_path / (fn + "_bw_" + segmentation_type[3:] + ".tiff")))
+                _save_tiff(bw, output_path / (fn + "_bw_" + segmentation_type[3:] + ".tiff"))
             else:
-                OmeTiffWriter.save(data=im[i], uri=str(output_path / (fn + "_" + names[i] + ".tiff")))
+                _save_tiff(im[i], output_path / (fn + "_" + names[i] + ".tiff"))
