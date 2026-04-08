@@ -1,4 +1,5 @@
 import importlib
+import inspect
 import numpy as np
 
 from dataclasses import dataclass
@@ -75,7 +76,17 @@ class WorkflowStep:
 
             return py_function(*input_images)
         except TypeError:
-            # Some functions want it as a list
+            # Determine whether the TypeError came from argument unpacking or
+            # from inside the function itself. If the signature accepts the
+            # unpacked arguments, the error is internal and should propagate.
+            try:
+                inspect.signature(py_function).bind(*input_images)
+            except TypeError:
+                pass  # binding failed — try passing images as a list
+            else:
+                raise  # binding succeeded — error is internal to the function
+
+            # Some functions want the images as a single list argument
             if parameters is not None:
                 return py_function(input_images, **parameters)
             return py_function(input_images)
