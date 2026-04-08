@@ -5,8 +5,6 @@ from typing import Any, Dict, List
 from aicssegmentation.exceptions import ArgumentNullError
 from .workflow_step import WorkflowStep
 from .workflow_definition import WorkflowDefinition
-from napari.layers import Image
-
 log = logging.getLogger(__name__)
 
 
@@ -154,7 +152,7 @@ class Workflow:
             self.execute_next()
         return self.get_most_recent_result()
 
-    def execute_step(self, i: int, parameters: Dict[str, Any], selected_image: List[Image]) -> np.ndarray:
+    def execute_step(self, i: int, parameters: Dict[str, Any], selected_image: List[Any]) -> np.ndarray:
         """
 
         Args:
