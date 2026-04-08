@@ -1,6 +1,6 @@
 import numpy as np
 
-from aicsimageio import imread
+from skimage.io import imread
 from typing import List
 from dataclasses import dataclass
 from aicssegmentation.util.lazy import lazy_property
