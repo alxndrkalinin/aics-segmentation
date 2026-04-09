@@ -1,13 +1,16 @@
+from pathlib import Path
+from unittest import mock
+
 import numpy as np
 import pytest
-
-from unittest import mock
-from aicsimageio.writers.ome_tiff_writer import OmeTiffWriter
-from pathlib import Path
-from aicsimageio import AICSImage
+import tifffile
 from numpy import random
+
 from aicssegmentation.workflow.batch_workflow import BatchWorkflow
 from aicssegmentation.workflow.workflow_config import WorkflowConfig
+
+aicsimageio = pytest.importorskip("aicsimageio")
+AICSImage = aicsimageio.AICSImage
 
 
 @pytest.fixture
@@ -19,7 +22,7 @@ def batch_workflow(tmp_path: Path):
 
     for i in range(0, 10):
         three_d_image = np.zeros((10, 100, 100))
-        OmeTiffWriter.save(data=three_d_image, uri=input_dir / f"test{i}.tiff", dim_order="ZYX")
+        tifffile.imwrite(input_dir / f"test{i}.tiff", three_d_image)
 
     definition = WorkflowConfig().get_workflow_definition("sec61b")
     return BatchWorkflow(definition, input_dir, output_dir, channel_index=0)
@@ -38,12 +41,17 @@ class TestBatchWorkflow:
 
     def test_format_image_to_3d_multiscene(self, batch_workflow: BatchWorkflow):
         # Two scenes
-        image = AICSImage([np.ones((5, 1, 10, 100, 100)), np.ones((5, 1, 10, 100, 100))], known_dims="TCZYX")
+        image = AICSImage(
+            [np.ones((5, 1, 10, 100, 100)), np.ones((5, 1, 10, 100, 100))],
+            known_dims="TCZYX",
+        )
         with pytest.raises(ValueError):
             batch_workflow._format_image_to_3d(image)
 
     @mock.patch("aicssegmentation.workflow.batch_workflow.Workflow.execute_all")
-    def test_process_all(self, mock_workflow_execute_all, batch_workflow: BatchWorkflow):
+    def test_process_all(
+        self, mock_workflow_execute_all, batch_workflow: BatchWorkflow
+    ):
         # Arrange
         mock_workflow_execute_all.return_value = np.zeros((10, 100, 100))
 

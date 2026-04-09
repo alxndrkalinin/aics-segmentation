@@ -1,10 +1,11 @@
-import importlib
 import inspect
+import importlib
+from enum import Enum
+from typing import Any, Dict, List
+from dataclasses import dataclass
+
 import numpy as np
 
-from dataclasses import dataclass
-from enum import Enum
-from typing import Dict, List, Any
 from .segmenter_function import SegmenterFunction
 
 
@@ -42,7 +43,9 @@ class WorkflowStep:
     def name(self):
         return self.function.display_name
 
-    def execute(self, input_images: List[np.ndarray], parameters: Dict[str, Any] = None) -> np.ndarray:
+    def execute(
+        self, input_images: List[np.ndarray], parameters: Dict[str, Any] = None
+    ) -> np.ndarray:
         """
         Execute this workflow step on the given input image and return the result.
 
@@ -52,7 +55,8 @@ class WorkflowStep:
             parameters (Dict): Dictionary of parameters to pass to the
                                 underlying function
 
-        Returns:
+        Returns
+        -------
             self.result (np.ndarray): Result of performing workflow step
                                         on the given image.
         """

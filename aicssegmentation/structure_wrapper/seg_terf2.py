@@ -1,17 +1,18 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
 
+import numpy as np
+from skimage.morphology import remove_small_objects
+
 from aicssegmentation.core.vessel import vesselness3D
 from aicssegmentation.core.seg_dot import dot_3d
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
-from skimage.morphology import remove_small_objects
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
+)
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
 )
 
 
@@ -24,7 +25,7 @@ def Workflow_terf2(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure TERF2
+    Classic segmentation workflow wrapper for structure TERF2
 
     Parameter:
     -----------
@@ -80,7 +81,9 @@ def Workflow_terf2(
     ###################
     # core algorithm
     ###################
-    response_f3 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True)
+    response_f3 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True
+    )
     response_f3 = response_f3 > vesselness_cutoff
 
     response_s3_1 = dot_3d(structure_img_smooth, log_sigma=dot_3d_sigma)

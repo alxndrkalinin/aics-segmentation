@@ -1,11 +1,12 @@
 import json
-
-from pathlib import Path
 from typing import Dict, List
+from pathlib import Path
+
 from aicssegmentation.util.directories import Directories
-from .segmenter_function import SegmenterFunction, FunctionParameter, WidgetType
-from .workflow_definition import WorkflowDefinition, PrebuiltWorkflowDefinition
+
 from .workflow_step import WorkflowStep, WorkflowStepCategory
+from .segmenter_function import WidgetType, FunctionParameter, SegmenterFunction
+from .workflow_definition import WorkflowDefinition, PrebuiltWorkflowDefinition
 
 
 class ConfigurationException(Exception):
@@ -30,7 +31,9 @@ class WorkflowConfig:
         Get the list of all workflows available through configuration
         """
         if self._available_workflow_names is None:
-            json_list = sorted(Directories.get_structure_config_dir().glob("conf_*.json"))
+            json_list = sorted(
+                Directories.get_structure_config_dir().glob("conf_*.json")
+            )
             self._available_workflow_names = [p.stem[5:] for p in json_list]
 
         return self._available_workflow_names
@@ -47,7 +50,9 @@ class WorkflowConfig:
                     obj = json.load(file)
                     self._all_functions = self._all_functions_decoder(obj)
             except Exception as ex:
-                raise ConfigurationException(f"Error reading json configuration from {path}") from ex
+                raise ConfigurationException(
+                    f"Error reading json configuration from {path}"
+                ) from ex
 
         return self._all_functions
 
@@ -64,7 +69,9 @@ class WorkflowConfig:
 
         path = Directories.get_structure_config_dir() / f"conf_{workflow_name}.json"
 
-        return self.get_workflow_definition_from_config_file(path, workflow_name, prebuilt=True)
+        return self.get_workflow_definition_from_config_file(
+            path, workflow_name, prebuilt=True
+        )
 
     def get_workflow_definition_from_config_file(
         self, file_path: Path, workflow_name: str = None, prebuilt: bool = False
@@ -73,24 +80,39 @@ class WorkflowConfig:
         Get a WorkflowDefinition based off the given json configuration file
         """
         if file_path.suffix.lower() != ".json":
-            raise ValueError("Workflow configuration file must be a json file with .json file extension.")
+            raise ValueError(
+                "Workflow configuration file must be a json file with .json file extension."
+            )
 
         with open(file_path) as file:
             try:
                 obj = json.load(file)
-                return self._workflow_decoder(obj, workflow_name or file_path.name, prebuilt)
+                return self._workflow_decoder(
+                    obj, workflow_name or file_path.name, prebuilt
+                )
             except Exception as ex:
-                raise ConfigurationException(f"Error reading json configuration from {file_path}") from ex
+                raise ConfigurationException(
+                    f"Error reading json configuration from {file_path}"
+                ) from ex
 
-    def save_workflow_definition_as_json(self, workflow_definition: WorkflowDefinition, output_file_path: Path):
+    def save_workflow_definition_as_json(
+        self, workflow_definition: WorkflowDefinition, output_file_path: Path
+    ):
         """
         Save a WorkflowDefinition as a json config file
         """
         if output_file_path.suffix.lower() != ".json":
-            raise ValueError("Workflow configuration file save path must have a .json extension.")
+            raise ValueError(
+                "Workflow configuration file save path must have a .json extension."
+            )
 
         with open(output_file_path, "w") as file:
-            json.dump(self._workflow_encoder(workflow_definition), file, indent=4, sort_keys=True)
+            json.dump(
+                self._workflow_encoder(workflow_definition),
+                file,
+                indent=4,
+                sort_keys=True,
+            )
 
     def _all_functions_decoder(self, obj: Dict) -> List[SegmenterFunction]:
         """
@@ -117,7 +139,10 @@ class WorkflowConfig:
                 module=function_v["python::module"],
             )
 
-            if function_v.get("parameters") is not None and len(function_v["parameters"]) > 0:
+            if (
+                function_v.get("parameters") is not None
+                and len(function_v["parameters"]) > 0
+            ):
                 params = dict()
 
                 for param_k, param_v in function_v["parameters"].items():
@@ -125,10 +150,14 @@ class WorkflowConfig:
                     params[param_name] = list()
 
                     if isinstance(param_v, dict):
-                        params[param_name].append(build_function_parameter(param_name, param_v))
+                        params[param_name].append(
+                            build_function_parameter(param_name, param_v)
+                        )
                     elif isinstance(param_v, list):
                         for item in param_v:
-                            params[param_name].append(build_function_parameter(param_name, item))
+                            params[param_name].append(
+                                build_function_parameter(param_name, item)
+                            )
 
                 function.parameters = params
 
@@ -136,7 +165,9 @@ class WorkflowConfig:
 
         return functions
 
-    def _workflow_decoder(self, obj: Dict, workflow_name: str, prebuilt: bool = False) -> WorkflowDefinition:
+    def _workflow_decoder(
+        self, obj: Dict, workflow_name: str, prebuilt: bool = False
+    ) -> WorkflowDefinition:
         """
         Decode Workflow config (conf_{workflow_name}.json)
         """
@@ -165,7 +196,10 @@ class WorkflowConfig:
                 parent=parent,
             )
 
-            if step_v.get("parameter_values") is not None and len(step_v["parameter_values"]) > 0:
+            if (
+                step_v.get("parameter_values") is not None
+                and len(step_v["parameter_values"]) > 0
+            ):
                 param_defaults = dict()
 
                 for param_k, param_v in step_v["parameter_values"].items():
@@ -187,7 +221,6 @@ class WorkflowConfig:
         """
         Encode a WorkflowDefinition to a json dictionary
         """
-
         # TODO add header / version ?
         result = dict()
         for step in workflow_definition.steps:
@@ -195,10 +228,16 @@ class WorkflowConfig:
             parent = step.parent[0] if len(step.parent) == 1 else step.parent
 
             step_dict = {
-                step_number: {"function": step.function.name, "category": step.category.value, "parent": parent}
+                step_number: {
+                    "function": step.function.name,
+                    "category": step.category.value,
+                    "parent": parent,
+                }
             }
             if step.parameter_values is not None:
-                step_dict[step_number].update({"parameter_values": step.parameter_values})
+                step_dict[step_number].update(
+                    {"parameter_values": step.parameter_values}
+                )
 
             result.update(step_dict)
 

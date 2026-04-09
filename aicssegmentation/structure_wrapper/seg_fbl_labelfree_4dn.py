@@ -1,19 +1,21 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
-from skimage.morphology import remove_small_objects
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    image_smoothing_gaussian_3d,
-)
-from aicssegmentation.core.seg_dot import dot_2d_slice_by_slice_wrapper
-from skimage.filters import threshold_triangle, threshold_otsu
+
+import numpy as np
+from skimage.filters import threshold_otsu, threshold_triangle
 from skimage.measure import label
+from skimage.morphology import remove_small_objects
+
+from aicssegmentation.core.seg_dot import dot_2d_slice_by_slice_wrapper
 
 # do not remove ####
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
+)
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    image_smoothing_gaussian_3d,
 )
 
 
@@ -26,7 +28,7 @@ def Workflow_fbl_labelfree_4dn(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure FBL Labelfree 4dn
+    Classic segmentation workflow wrapper for structure FBL Labelfree 4dn
 
     Parameter:
     -----------
@@ -62,12 +64,16 @@ def Workflow_fbl_labelfree_4dn(
     # PRE_PROCESSING
     ###################
     # intenisty normalization
-    struct_norm = intensity_normalization(struct_img, scaling_param=intensity_scaling_param)
+    struct_norm = intensity_normalization(
+        struct_img, scaling_param=intensity_scaling_param
+    )
     out_img_list.append(struct_img.copy())
     out_name_list.append("im_norm")
 
     # smoothing
-    struct_smooth = image_smoothing_gaussian_3d(struct_norm, sigma=gaussian_smoothing_sigma)
+    struct_smooth = image_smoothing_gaussian_3d(
+        struct_norm, sigma=gaussian_smoothing_sigma
+    )
 
     out_img_list.append(struct_smooth.copy())
     out_name_list.append("im_smooth")
@@ -82,7 +88,9 @@ def Workflow_fbl_labelfree_4dn(
 
     th_low_level = (global_tri + global_median) / 2
     bw_low_level = struct_smooth > th_low_level
-    bw_low_level = remove_small_objects(bw_low_level, min_size=low_level_min_size, connectivity=1, out=bw_low_level)
+    bw_low_level = remove_small_objects(
+        bw_low_level, min_size=low_level_min_size, connectivity=1, out=bw_low_level
+    )
 
     # step 2: high level thresholding
     bw_high_level = np.zeros_like(bw_low_level)

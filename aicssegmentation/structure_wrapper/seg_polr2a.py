@@ -1,20 +1,20 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
 
+import numpy as np
+from skimage.filters import threshold_otsu
+from skimage.morphology import remove_small_objects
+
 from aicssegmentation.core.vessel import vesselness3D
 from aicssegmentation.core.seg_dot import dot_3d
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
-from skimage.morphology import remove_small_objects
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-
-from skimage.filters import threshold_otsu
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
+)
 
 
 def Workflow_polr2a(
@@ -26,7 +26,7 @@ def Workflow_polr2a(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure polr2a
+    Classic segmentation workflow wrapper for structure polr2a
 
     Parameter:
     -----------
@@ -69,7 +69,9 @@ def Workflow_polr2a(
     ###################
     # intenisty normalization (min/max)
     struct_img = intensity_normalization(struct_img, scaling_param=intensity_norm_param)
-    struct_img_otsu = intensity_normalization(struct_img, scaling_param=intensity_norm_param_otsu)
+    struct_img_otsu = intensity_normalization(
+        struct_img, scaling_param=intensity_norm_param_otsu
+    )
 
     out_img_list.append(struct_img.copy())
     out_name_list.append("im_norm")
@@ -90,7 +92,9 @@ def Workflow_polr2a(
     global_thresh = otsu_thresh * scaling_factor
     bw_otsu_mask = structure_img_smooth_otsu > global_thresh
 
-    response_f3 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True)
+    response_f3 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True
+    )
     response_f3 = response_f3 > vesselness_cutoff
 
     response_s3_1 = dot_3d(structure_img_smooth, log_sigma=dot_3d_sigma)

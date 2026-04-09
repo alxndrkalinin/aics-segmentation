@@ -1,6 +1,6 @@
-import aicssegmentation
-
 from pathlib import Path
+
+import aicssegmentation
 
 
 class Directories:

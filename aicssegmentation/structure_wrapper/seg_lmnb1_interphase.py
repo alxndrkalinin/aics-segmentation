@@ -1,24 +1,26 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
 
-# function for core algorithm
-from aicssegmentation.core.vessel import filament_2d_wrapper
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    image_smoothing_gaussian_3d,
-)
+import numpy as np
+from scipy.ndimage import zoom
+from skimage.segmentation import watershed, find_boundaries
+
 from aicssegmentation.core.utils import (
-    get_middle_frame,
     hole_filling,
+    get_middle_frame,
     get_3dseed_from_mid_frame,
 )
-from skimage.segmentation import find_boundaries, watershed
+
+# function for core algorithm
+from aicssegmentation.core.vessel import filament_2d_wrapper
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    image_smoothing_gaussian_3d,
+)
 
 
 def Workflow_lmnb1_interphase(
@@ -30,7 +32,7 @@ def Workflow_lmnb1_interphase(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure LMNB1 interphase
+    Classic segmentation workflow wrapper for structure LMNB1 interphase
 
     Parameter:
     -----------
@@ -79,7 +81,9 @@ def Workflow_lmnb1_interphase(
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
 
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
 
     # smoothing with boundary preserving smoothing
     structure_img_smooth = image_smoothing_gaussian_3d(

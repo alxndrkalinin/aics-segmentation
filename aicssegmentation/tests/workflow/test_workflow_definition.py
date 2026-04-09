@@ -1,6 +1,7 @@
 import pytest
 
 from aicssegmentation.workflow.workflow_definition import PrebuiltWorkflowDefinition
+
 from . import SUPPORTED_STRUCTURE_NAMES
 
 

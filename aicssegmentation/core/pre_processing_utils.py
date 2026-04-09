@@ -1,5 +1,6 @@
-import numpy as np
 from typing import List
+
+import numpy as np
 from scipy.stats import norm
 from scipy.ndimage import gaussian_filter
 
@@ -7,8 +8,8 @@ from scipy.ndimage import gaussian_filter
 def intensity_normalization(struct_img: np.ndarray, scaling_param: List):
     """Normalize the intensity of input image so that the value range is from 0 to 1.
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     img: np.ndarray
         a 3d image
     scaling_param: List
@@ -31,7 +32,10 @@ def intensity_normalization(struct_img: np.ndarray, scaling_param: List):
 
     if len(scaling_param) == 1:
         if scaling_param[0] < 1:
-            print("intensity normalization: min-max normalization with NO absolute" + "intensity upper bound")
+            print(
+                "intensity normalization: min-max normalization with NO absolute"
+                + "intensity upper bound"
+            )
         else:
             print(f"intensity norm: min-max norm with upper bound {scaling_param[0]}")
             struct_img[struct_img > scaling_param[0]] = struct_img.min()
@@ -44,18 +48,20 @@ def intensity_normalization(struct_img: np.ndarray, scaling_param: List):
         struct_img[struct_img > strech_max] = strech_max
         struct_img[struct_img < strech_min] = strech_min
     elif len(scaling_param) == 4:
-        img_valid = struct_img[np.logical_and(struct_img > scaling_param[2], struct_img < scaling_param[3])]
-        assert (
-            img_valid.size > 0
-        ), f"Adjust intensity normalization parameters {scaling_param[2]} and {scaling_param[3]} to include the image with range {struct_img.min()}:{struct_img.max()}"  # noqa: E501
+        img_valid = struct_img[
+            np.logical_and(struct_img > scaling_param[2], struct_img < scaling_param[3])
+        ]
+        assert img_valid.size > 0, (
+            f"Adjust intensity normalization parameters {scaling_param[2]} and {scaling_param[3]} to include the image with range {struct_img.min()}:{struct_img.max()}"
+        )  # noqa: E501
         m, s = norm.fit(img_valid.flat)
         strech_min = max(scaling_param[2] - scaling_param[0] * s, struct_img.min())
         strech_max = min(scaling_param[3] + scaling_param[1] * s, struct_img.max())
         struct_img[struct_img > strech_max] = strech_max
         struct_img[struct_img < strech_min] = strech_min
-    assert (
-        strech_min <= strech_max
-    ), f"Please adjust intensity normalization parameters so that {strech_min}<={strech_max}"
+    assert strech_min <= strech_max, (
+        f"Please adjust intensity normalization parameters so that {strech_min}<={strech_max}"
+    )
     struct_img = (struct_img - strech_min + 1e-8) / (strech_max - strech_min + 1e-8)
 
     # print('intensity normalization completes')
@@ -64,17 +70,18 @@ def intensity_normalization(struct_img: np.ndarray, scaling_param: List):
 
 def image_smoothing_gaussian_3d(struct_img, sigma, truncate_range=3.0):
     """
-    wrapper for 3D Guassian smoothing
+    Wrapper for 3D Guassian smoothing
     """
-
-    structure_img_smooth = gaussian_filter(struct_img, sigma=sigma, mode="nearest", truncate=truncate_range)
+    structure_img_smooth = gaussian_filter(
+        struct_img, sigma=sigma, mode="nearest", truncate=truncate_range
+    )
 
     return structure_img_smooth
 
 
 def image_smoothing_gaussian_slice_by_slice(struct_img, sigma, truncate_range=3.0):
     """
-    wrapper for applying 2D Guassian smoothing slice by slice on a 3D image
+    Wrapper for applying 2D Guassian smoothing slice by slice on a 3D image
     """
     structure_img_smooth = np.zeros_like(struct_img)
     for zz in range(struct_img.shape[0]):
@@ -92,10 +99,10 @@ def edge_preserving_smoothing_3d(
     timeStep: float = 0.0625,
     spacing: List = [1, 1, 1],
 ):
-    """perform edge preserving smoothing on a 3D image
+    """Perform edge preserving smoothing on a 3D image
 
-    Parameters:
-    -------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         the image to be smoothed
     numberOfInterations: int
@@ -118,7 +125,9 @@ def edge_preserving_smoothing_3d(
     # set spacing
     itk_img.SetSpacing(spacing)
 
-    gradientAnisotropicDiffusionFilter = itk.GradientAnisotropicDiffusionImageFilter.New(itk_img)
+    gradientAnisotropicDiffusionFilter = (
+        itk.GradientAnisotropicDiffusionImageFilter.New(itk_img)
+    )
     gradientAnisotropicDiffusionFilter.SetNumberOfIterations(numberOfIterations)
     gradientAnisotropicDiffusionFilter.SetTimeStep(timeStep)
     gradientAnisotropicDiffusionFilter.SetConductanceParameter(conductance)
@@ -133,7 +142,7 @@ def edge_preserving_smoothing_3d(
 
 def suggest_normalization_param(structure_img0):
     """
-    suggest scaling parameter assuming the image is a representative example
+    Suggest scaling parameter assuming the image is a representative example
     of this cell structure
     """
     m, s = norm.fit(structure_img0.flat)
@@ -153,17 +162,21 @@ def suggest_normalization_param(structure_img0):
     for up_i in np.arange(0.5, 1000, 0.5):
         if m + s * up_i > p99:
             if m + s * up_i > pmax:
-                print(f"suggested upper range is {up_i-0.5}, which is {m+s*(up_i-0.5)}")
+                print(
+                    f"suggested upper range is {up_i - 0.5}, which is {m + s * (up_i - 0.5)}"
+                )
                 up_ratio = up_i - 0.5
             else:
-                print(f"suggested upper range is {up_i}, which is {m+s*up_i}")
+                print(f"suggested upper range is {up_i}, which is {m + s * up_i}")
                 up_ratio = up_i
             break
 
     low_ratio = 0
     for low_i in np.arange(0.5, 1000, 0.5):
         if m - s * low_i < pmin:
-            print(f"suggested lower range is {low_i-0.5}, which is {m-s*(low_i-0.5)}")
+            print(
+                f"suggested lower range is {low_i - 0.5}, which is {m - s * (low_i - 0.5)}"
+            )
             low_ratio = low_i - 0.5
             break
 
@@ -173,4 +186,7 @@ def suggest_normalization_param(structure_img0):
         + "(may loss some dim parts), or decrease the second value"
         + "(may loss some texture in super bright regions)"
     )
-    print("To slightly reduce the contrast: You may decrease the first value, or " + "increase the second value")
+    print(
+        "To slightly reduce the contrast: You may decrease the first value, or "
+        + "increase the second value"
+    )

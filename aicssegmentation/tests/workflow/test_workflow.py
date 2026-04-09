@@ -1,14 +1,16 @@
 import numpy as np
+from skimage import data
 
 from aicssegmentation.workflow.workflow import Workflow
 from aicssegmentation.workflow.workflow_config import WorkflowConfig
-from skimage import data
 
 
 class TestWorkflow:
     def setup_method(self):
         self._fake_image = np.asarray(data.astronaut())
-        definition = WorkflowConfig().get_workflow_definition("sec61b")  # TODO use mock workflow
+        definition = WorkflowConfig().get_workflow_definition(
+            "sec61b"
+        )  # TODO use mock workflow
         self._workflow = Workflow(definition, self._fake_image)
 
     def test_step_by_step_workflow_sec61b(self):

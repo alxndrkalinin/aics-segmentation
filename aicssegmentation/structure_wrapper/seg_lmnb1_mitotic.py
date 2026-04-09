@@ -1,19 +1,20 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
 
+import numpy as np
+from scipy.ndimage import zoom
+from skimage.morphology import remove_small_objects
+
 # function for core algorithm
 from aicssegmentation.core.vessel import filament_2d_wrapper
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    image_smoothing_gaussian_3d,
-)
-from skimage.morphology import remove_small_objects
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    image_smoothing_gaussian_3d,
+)
 
 
 def Workflow_lmnb1_mitotic(
@@ -25,7 +26,7 @@ def Workflow_lmnb1_mitotic(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure LMNB1 mitotic
+    Classic segmentation workflow wrapper for structure LMNB1 mitotic
 
     Parameter:
     -----------
@@ -73,7 +74,9 @@ def Workflow_lmnb1_mitotic(
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
 
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
 
     # smoothing with boundary preserving smoothing
     structure_img_smooth = image_smoothing_gaussian_3d(

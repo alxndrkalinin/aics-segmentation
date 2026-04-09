@@ -1,17 +1,19 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
-from aicssegmentation.core.vessel import vesselness3D
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
+
+import numpy as np
+from scipy.ndimage import zoom
 from skimage.morphology import remove_small_objects
+
+from aicssegmentation.core.vessel import vesselness3D
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
+)
 
 
 def Workflow_tuba1b(
@@ -23,7 +25,7 @@ def Workflow_tuba1b(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure TUBA1B
+    Classic segmentation workflow wrapper for structure TUBA1B
 
     Parameter:
     -----------
@@ -71,7 +73,9 @@ def Workflow_tuba1b(
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
 
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
 
     # smoothing with boundary preserving smoothing
     structure_img_smooth = edge_preserving_smoothing_3d(struct_img)
@@ -84,7 +88,9 @@ def Workflow_tuba1b(
     ###################
 
     # vesselness 3d
-    response = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True)
+    response = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True
+    )
     bw = response > vesselness_cutoff
 
     ###################

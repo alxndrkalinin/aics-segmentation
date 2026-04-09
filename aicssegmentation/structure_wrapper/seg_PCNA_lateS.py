@@ -1,20 +1,20 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
 
+import numpy as np
+from skimage.filters import threshold_otsu
+from skimage.morphology import remove_small_objects
+
 from aicssegmentation.core.vessel import vesselness3D
 from aicssegmentation.core.seg_dot import dot_3d
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
-from skimage.morphology import remove_small_objects
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-
-from skimage.filters import threshold_otsu
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
+)
 
 
 def Workflow_PCNA_lateS(
@@ -26,7 +26,7 @@ def Workflow_PCNA_lateS(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure pcna
+    Classic segmentation workflow wrapper for structure pcna
 
     Parameter:
     -----------
@@ -70,7 +70,9 @@ def Workflow_PCNA_lateS(
     ###################
     # intenisty normalization (min/max)
     struct_img = intensity_normalization(struct_img, scaling_param=intensity_norm_param)
-    struct_img_otsu = intensity_normalization(struct_img, scaling_param=intensity_norm_param_otsu)
+    struct_img_otsu = intensity_normalization(
+        struct_img, scaling_param=intensity_norm_param_otsu
+    )
 
     out_img_list.append(struct_img.copy())
     out_name_list.append("im_norm")
@@ -94,7 +96,9 @@ def Workflow_PCNA_lateS(
         bw_otsu_mask, min_size=otsumask_min_area, connectivity=1, in_place=False
     )
 
-    response_f3 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True)
+    response_f3 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True
+    )
     response_f3 = response_f3 > vesselness_cutoff
 
     response_s3_1 = dot_3d(structure_img_smooth, log_sigma=dot_3d_sigma)
@@ -113,7 +117,9 @@ def Workflow_PCNA_lateS(
     ###################
     bw = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
     for zz in range(bw.shape[0]):
-        bw[zz, :, :] = remove_small_objects(bw[zz, :, :], min_size=3, connectivity=1, in_place=False)
+        bw[zz, :, :] = remove_small_objects(
+            bw[zz, :, :], min_size=3, connectivity=1, in_place=False
+        )
 
     seg = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
 

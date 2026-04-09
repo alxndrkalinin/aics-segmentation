@@ -3,14 +3,23 @@ from typing import List
 import numpy as np
 from scipy.ndimage import distance_transform_edt
 from skimage.measure import label, regionprops
-from skimage.morphology import ball, disk, dilation, erosion, medial_axis, remove_small_objects
+from skimage.morphology import (
+    ball,
+    disk,
+    erosion,
+    dilation,
+    medial_axis,
+    remove_small_objects,
+)
 
 
-def hole_filling(bw: np.ndarray, hole_min: int, hole_max: int, fill_2d: bool = True) -> np.ndarray:
+def hole_filling(
+    bw: np.ndarray, hole_min: int, hole_max: int, fill_2d: bool = True
+) -> np.ndarray:
     """Fill holes in 2D/3D segmentation
 
-    Parameters:
-    -------------
+    Parameters
+    ----------
     bw: np.ndarray
         a binary 2D/3D image.
     hole_min: int
@@ -68,11 +77,13 @@ def hole_filling(bw: np.ndarray, hole_min: int, hole_max: int, fill_2d: bool = T
     return np.logical_or(bw, fill_out)
 
 
-def size_filter(img: np.ndarray, min_size: int, method: str = "3D", connectivity: int = 1):
-    """size filter
+def size_filter(
+    img: np.ndarray, min_size: int, method: str = "3D", connectivity: int = 1
+):
+    """Size filter
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     img: np.ndarray
         the image to filter on
     min_size: int
@@ -84,7 +95,9 @@ def size_filter(img: np.ndarray, min_size: int, method: str = "3D", connectivity
     """
     assert len(img.shape) == 3, "image has to be 3D"
     if method == "3D":
-        return remove_small_objects(img > 0, min_size=min_size, connectivity=connectivity)
+        return remove_small_objects(
+            img > 0, min_size=min_size, connectivity=connectivity
+        )
     elif method == "slice_by_slice":
         seg = np.zeros(img.shape, dtype=bool)
         for zz in range(img.shape[0]):
@@ -98,11 +111,13 @@ def size_filter(img: np.ndarray, min_size: int, method: str = "3D", connectivity
         raise NotImplementedError(f"unsupported method {method}")
 
 
-def topology_preserving_thinning(bw: np.ndarray, min_thickness: int = 1, thin: int = 1) -> np.ndarray:
-    """perform thinning on segmentation without breaking topology
+def topology_preserving_thinning(
+    bw: np.ndarray, min_thickness: int = 1, thin: int = 1
+) -> np.ndarray:
+    """Perform thinning on segmentation without breaking topology
 
-    Parameters:
-    --------------
+    Parameters
+    ----------
     bw: np.ndarray
         the 3D binary image to be thinned
     min_thickness: int
@@ -144,7 +159,6 @@ def divide_nonzero(array1, array2):
 
 def histogram_otsu(hist):
     """Apply Otsu thresholding method on 1D histogram"""
-
     # modify the elements in hist to avoid completely zero value in cumsum
     hist = hist + 1e-5
 
@@ -173,8 +187,8 @@ def histogram_otsu(hist):
 def absolute_eigenvaluesh(nd_array):
     """Computes the eigenvalues sorted by absolute value from the symmetrical matrix.
 
-    Parameters:
-    -------------
+    Parameters
+    ----------
     nd_array: nd.ndarray
         array from which the eigenvalues will be calculated.
 
@@ -187,7 +201,9 @@ def absolute_eigenvaluesh(nd_array):
     sorted_eigenvalues = sortbyabs(eigenvalues, axis=-1)
     return [
         np.squeeze(eigenvalue, axis=-1)
-        for eigenvalue in np.split(sorted_eigenvalues, sorted_eigenvalues.shape[-1], axis=-1)
+        for eigenvalue in np.split(
+            sorted_eigenvalues, sorted_eigenvalues.shape[-1], axis=-1
+        )
     ]
 
 
@@ -201,10 +217,10 @@ def sortbyabs(a: np.ndarray, axis=0):
 
 
 def get_middle_frame(struct_img: np.ndarray, method: str = "z") -> int:
-    """find the middle z frame of an image stack
+    """Find the middle z frame of an image stack
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         the 3D image to process
     method: str
@@ -223,7 +239,6 @@ def get_middle_frame(struct_img: np.ndarray, method: str = "z") -> int:
     mid_frame: int
         the z index of the middle z frame
     """
-
     from skimage.filters import threshold_otsu
 
     if method == "intensity":
@@ -254,10 +269,10 @@ def get_3dseed_from_mid_frame(
     hole_min: int = 1,
     bg_seed: bool = True,
 ) -> np.ndarray:
-    """build a 3D seed image from the binary segmentation of a single slice
+    """Build a 3D seed image from the binary segmentation of a single slice
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     bw: np.ndarray
         the 2d segmentation of a single frame, or a 3D array with only one slice
         containing segmentation
@@ -297,9 +312,8 @@ def get_3dseed_from_mid_frame(
 
 def remove_hot_pixel(seg: np.ndarray) -> np.ndarray:
     """
-    remove hot pixel from segmentation
+    Remove hot pixel from segmentation
     """
-
     assert len(seg.shape) == 3, "input segmentation must be 3D"
 
     # make sure the segmentation is 0/1
@@ -332,11 +346,11 @@ def get_seed_for_objects(
     bg_seed: bool = True,
 ) -> np.ndarray:
     """
-    build a seed image for an image of 3D objects (assuming roughly convex shape
+    Build a seed image for an image of 3D objects (assuming roughly convex shape
     in 3D) using the information in the middle slice
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     raw: np.ndarray
         orignal image used to determine middle slice
     bw: np.ndarray
@@ -387,42 +401,41 @@ def get_seed_for_objects(
 
 
 def segmentation_union(seg: List) -> np.ndarray:
-    """merge multiple segmentations into a single result
+    """Merge multiple segmentations into a single result
 
     Parameters
-    ------------
+    ----------
     seg: List
         a list of segmentations, should all have the same shape
     """
-
     return np.logical_or.reduce(seg)
 
 
 def segmentation_intersection(seg: List) -> np.ndarray:
-    """get the intersection of multiple segmentations into a single result
+    """Get the intersection of multiple segmentations into a single result
 
     Parameters
-    ------------
+    ----------
     seg: List
         a list of segmentations, should all have the same shape
     """
-
     return np.logical_and.reduce(seg)
 
 
 def segmentation_xor(seg: List) -> np.ndarray:
-    """get the XOR of multiple segmentations into a single result
+    """Get the XOR of multiple segmentations into a single result
 
     Parameters
-    ------------
+    ----------
     seg: List
         a list of segmentations, should all have the same shape
     """
-
     return np.logical_xor.reduce(seg)
 
 
-def remove_index_object(label: np.ndarray, id_to_remove: List[int] = [1], in_place: bool = False) -> np.ndarray:
+def remove_index_object(
+    label: np.ndarray, id_to_remove: List[int] = [1], in_place: bool = False
+) -> np.ndarray:
     if in_place:
         img = label
     else:
@@ -434,7 +447,9 @@ def remove_index_object(label: np.ndarray, id_to_remove: List[int] = [1], in_pla
     return img
 
 
-def peak_local_max_wrapper(struct_img_for_peak: np.ndarray, bw: np.ndarray) -> np.ndarray:
+def peak_local_max_wrapper(
+    struct_img_for_peak: np.ndarray, bw: np.ndarray
+) -> np.ndarray:
     from skimage.feature import peak_local_max
 
     local_maxi = peak_local_max(struct_img_for_peak, labels=label(bw), min_distance=2)
@@ -446,7 +461,7 @@ def peak_local_max_wrapper(struct_img_for_peak: np.ndarray, bw: np.ndarray) -> n
 def watershed_wrapper(bw: np.ndarray, local_maxi: np.ndarray) -> np.ndarray:
     from scipy.ndimage import distance_transform_edt
     from skimage.measure import label
-    from skimage.morphology import dilation, ball
+    from skimage.morphology import ball, dilation
     from skimage.segmentation import watershed
 
     distance = distance_transform_edt(bw)
@@ -461,7 +476,7 @@ def watershed_wrapper(bw: np.ndarray, local_maxi: np.ndarray) -> np.ndarray:
 
 def prune_z_slices(bw: np.ndarray):
     """
-    prune the segmentation by only keep a certain range of z-slices
+    Prune the segmentation by only keep a certain range of z-slices
     with the assumption of all signals living only in a few consecutive
     z-slices. This function will first determine the key z-slice where most
     of the signals living on and then include a few slices up/down along z
@@ -470,8 +485,8 @@ def prune_z_slices(bw: np.ndarray):
     small segmented objects due to noise/artifacts in those z-slices we are
     sure the signal should not live on.
 
-    Parameters:
-    -----------
+    Parameters
+    ----------
     bw: np.ndarray
         the segmentation before pruning
     """
@@ -498,15 +513,19 @@ def prune_z_slices(bw: np.ndarray):
     return seg
 
 
-def cell_local_adaptive_threshold(structure_img_smooth: np.ndarray, cell_wise_min_area: int):
-    from skimage.filters import threshold_triangle, threshold_otsu
+def cell_local_adaptive_threshold(
+    structure_img_smooth: np.ndarray, cell_wise_min_area: int
+):
+    from skimage.filters import threshold_otsu, threshold_triangle
     from skimage.morphology import dilation
 
     # cell-wise local adaptive thresholding
     th_low_level = threshold_triangle(structure_img_smooth)
 
     bw_low_level = structure_img_smooth > th_low_level
-    bw_low_level = remove_small_objects(bw_low_level, min_size=cell_wise_min_area, connectivity=1, out=bw_low_level)
+    bw_low_level = remove_small_objects(
+        bw_low_level, min_size=cell_wise_min_area, connectivity=1, out=bw_low_level
+    )
     bw_low_level = dilation(bw_low_level, footprint=ball(2))
 
     bw_high_level = np.zeros_like(bw_low_level)
@@ -515,7 +534,9 @@ def cell_local_adaptive_threshold(structure_img_smooth: np.ndarray, cell_wise_mi
     for idx in range(num_obj):
         single_obj = lab_low == (idx + 1)
         local_otsu = threshold_otsu(structure_img_smooth[single_obj > 0])
-        bw_high_level[np.logical_and(structure_img_smooth > local_otsu * 0.98, single_obj)] = 1
+        bw_high_level[
+            np.logical_and(structure_img_smooth > local_otsu * 0.98, single_obj)
+        ] = 1
     return bw_high_level
 
 

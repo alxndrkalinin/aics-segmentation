@@ -1,19 +1,21 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
-from skimage.morphology import remove_small_objects, ball, dilation
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    image_smoothing_gaussian_3d,
-)
-from aicssegmentation.core.seg_dot import dot_slice_by_slice
-from skimage.filters import threshold_triangle, threshold_otsu
+
+import numpy as np
+from scipy.ndimage import zoom
+from skimage.filters import threshold_otsu, threshold_triangle
 from skimage.measure import label
+from skimage.morphology import ball, dilation, remove_small_objects
+
+from aicssegmentation.core.seg_dot import dot_slice_by_slice
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    image_smoothing_gaussian_3d,
+)
 
 
 def Workflow_cardio_npm1(
@@ -25,7 +27,7 @@ def Workflow_cardio_npm1(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure Cardio NPM1
+    Classic segmentation workflow wrapper for structure Cardio NPM1
 
     Parameter:
     -----------
@@ -76,8 +78,12 @@ def Workflow_cardio_npm1(
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
 
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
-        gaussian_smoothing_truncate_range = gaussian_smoothing_truncate_range * rescale_ratio
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
+        gaussian_smoothing_truncate_range = (
+            gaussian_smoothing_truncate_range * rescale_ratio
+        )
 
     # smoothing with gaussian filter
     structure_img_smooth = image_smoothing_gaussian_3d(
@@ -106,7 +112,9 @@ def Workflow_cardio_npm1(
     # imsave('img_smooth.tiff', structure_img_smooth)
 
     bw_low_level = structure_img_smooth > th_low_level
-    bw_low_level = remove_small_objects(bw_low_level, min_size=low_level_min_size, connectivity=1, out=bw_low_level)
+    bw_low_level = remove_small_objects(
+        bw_low_level, min_size=low_level_min_size, connectivity=1, out=bw_low_level
+    )
     bw_low_level = dilation(bw_low_level, footprint=ball(2))
 
     # step 2: high level thresholding
@@ -117,7 +125,9 @@ def Workflow_cardio_npm1(
         single_obj = lab_low == (idx + 1)
         local_otsu = threshold_otsu(structure_img_smooth[single_obj])
         if local_otsu > local_cutoff:
-            bw_high_level[np.logical_and(structure_img_smooth > 0.98 * local_otsu, single_obj)] = 1
+            bw_high_level[
+                np.logical_and(structure_img_smooth > 0.98 * local_otsu, single_obj)
+            ] = 1
 
     # imsave('seg_coarse.tiff', bw_high_level.astype(np.uint8))
 

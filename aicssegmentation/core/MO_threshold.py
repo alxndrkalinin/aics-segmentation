@@ -1,7 +1,7 @@
 import numpy as np
-from skimage.morphology import remove_small_objects, ball, dilation
-from skimage.filters import threshold_triangle, threshold_otsu
+from skimage.filters import threshold_otsu, threshold_triangle
 from skimage.measure import label
+from skimage.morphology import ball, dilation, remove_small_objects
 
 
 def MO_low_level(
@@ -21,8 +21,8 @@ def MO_low_level(
     local Otsu threshold larger than 1/3 of global Otsu threhsold and otherwise this
     connected component is discarded. This function implements the low level part.
 
-    Parameters:
-    --------------
+    Parameters
+    ----------
     structure_img_smooth: np.ndarray
         the image (should have already been smoothed) to apply the method on
     global_thresh_method: str
@@ -38,7 +38,6 @@ def MO_low_level(
     --------------
     a binary nd array of the segmentation result
     """
-
     if global_thresh_method == "tri" or global_thresh_method == "triangle":
         th_low_level = threshold_triangle(structure_img_smooth)
     elif global_thresh_method == "med" or global_thresh_method == "median":
@@ -49,7 +48,9 @@ def MO_low_level(
         th_low_level = (global_tri + global_median) / 2
 
     bw_low_level = structure_img_smooth > th_low_level
-    bw_low_level = remove_small_objects(bw_low_level, min_size=object_minArea, connectivity=1, out=bw_low_level)
+    bw_low_level = remove_small_objects(
+        bw_low_level, min_size=object_minArea, connectivity=1, out=bw_low_level
+    )
     if dilate:
         bw_low_level = dilation(bw_low_level, footprint=ball(2))
 
@@ -73,8 +74,8 @@ def MO_high_level(
     local Otsu threshold larger than 1/3 of global Otsu threhsold and otherwise this
     connected component is discarded. This function implements the high level part.
 
-    Parameters:
-    --------------
+    Parameters
+    ----------
     structure_img_smooth: np.ndarray
         the image (should have already been smoothed) to apply the method on
     bw_low_level: np.ndarray
@@ -88,7 +89,6 @@ def MO_high_level(
     --------------
     a binary nd array of the segmentation result
     """
-
     bw_high_level = np.zeros_like(bw_low_level)
     lab_low, num_obj = label(bw_low_level, return_num=True, connectivity=1)
     if extra_criteria:
@@ -97,12 +97,20 @@ def MO_high_level(
             single_obj = lab_low == (idx + 1)
             local_otsu = threshold_otsu(structure_img_smooth[single_obj > 0])
             if local_otsu > local_cutoff:
-                bw_high_level[np.logical_and(structure_img_smooth > local_otsu * local_adjust, single_obj)] = 1
+                bw_high_level[
+                    np.logical_and(
+                        structure_img_smooth > local_otsu * local_adjust, single_obj
+                    )
+                ] = 1
     else:
         for idx in range(num_obj):
             single_obj = lab_low == (idx + 1)
             local_otsu = threshold_otsu(structure_img_smooth[single_obj > 0])
-            bw_high_level[np.logical_and(structure_img_smooth > local_otsu * local_adjust, single_obj)] = 1
+            bw_high_level[
+                np.logical_and(
+                    structure_img_smooth > local_otsu * local_adjust, single_obj
+                )
+            ] = 1
 
     return bw_high_level > 0
 
@@ -127,8 +135,8 @@ def MO(
     local Otsu threshold larger than 1/3 of global Otsu threhsold and otherwise this
     connected component is discarded.
 
-    Parameters:
-    --------------
+    Parameters
+    ----------
     structure_img_smooth: np.ndarray
         the image (should have already been smoothed) to apply the method on
     global_thresh_method: str
@@ -151,10 +159,13 @@ def MO(
     --------------
     a binary nd array of the segmentation result
     """
+    bw_low_level = MO_low_level(
+        structure_img_smooth, global_thresh_method, object_minArea, dilate
+    )
 
-    bw_low_level = MO_low_level(structure_img_smooth, global_thresh_method, object_minArea, dilate)
-
-    bw_high_level = MO_high_level(structure_img_smooth, bw_low_level, extra_criteria, local_adjust)
+    bw_high_level = MO_high_level(
+        structure_img_smooth, bw_low_level, extra_criteria, local_adjust
+    )
 
     if return_object:
         return bw_high_level, bw_low_level

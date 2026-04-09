@@ -1,10 +1,13 @@
-import numpy as np
 import logging
-
 from typing import Any, Dict, List
+
+import numpy as np
+
 from aicssegmentation.exceptions import ArgumentNullError
+
 from .workflow_step import WorkflowStep
 from .workflow_definition import WorkflowDefinition
+
 log = logging.getLogger(__name__)
 
 
@@ -15,7 +18,9 @@ class Workflow:
     according to the steps defined in its WorkflowDefinition.
     """
 
-    def __init__(self, workflow_definition: WorkflowDefinition, input_image: np.ndarray):
+    def __init__(
+        self, workflow_definition: WorkflowDefinition, input_image: np.ndarray
+    ):
         if workflow_definition is None:
             raise ArgumentNullError("workflow_definition")
         if input_image is None:
@@ -43,7 +48,8 @@ class Workflow:
         Params:
             none
 
-        Returns:
+        Returns
+        -------
             (WorkflowStep): next WorkflowStep object to perform on image
             None if all steps have already been executed
         """
@@ -59,11 +65,11 @@ class Workflow:
             parameters: Optional dictionary of parameter inputs to use when executing the step
                         If parameters are not provided, the step's default parameters will be used
 
-        Returns:
+        Returns
+        -------
             result (np.ndarray): resultant image from running the
             next workflow step
         """
-
         step = self.get_next_step()
 
         log.info(f"Executing step #{step.step_number}")
@@ -86,7 +92,9 @@ class Workflow:
                 res = self.get_result(i - 1)  # parents are 1 indexed
                 image.append(res)
 
-        result: np.ndarray = self.get_next_step().execute(image, parameters or step.parameter_values)
+        result: np.ndarray = self.get_next_step().execute(
+            image, parameters or step.parameter_values
+        )
         self._results.append(result)
 
         # Only increment after running step
@@ -106,7 +114,8 @@ class Workflow:
             step_index (int): index of the WorkflowStep in the
             workflowengine to get the result image of.
 
-        Returns:
+        Returns
+        -------
             self.image (np.ndarray): Result of performing workflow step
                                      on the given image
                                      None if step has not been executed yet.
@@ -125,13 +134,16 @@ class Workflow:
         Params:
            none
 
-        Returns:
+        Returns
+        -------
             (np.ndarray): Result of the last executed WorkflowStep,
                             returns the starting image if no Workflowsteps have
                             been run.
         """
         if self._next_step == 0:
-            return self._starting_image  # TODO does this behavior make sense? Return None instead?
+            return (
+                self._starting_image
+            )  # TODO does this behavior make sense? Return None instead?
         else:
             return self.get_result(self._next_step - 1)
 
@@ -144,7 +156,8 @@ class Workflow:
         Params:
             none
 
-        Returns:
+        Returns
+        -------
             (np.ndarray): Result of the final WorkflowStep.
         """
         self.reset()
@@ -152,20 +165,25 @@ class Workflow:
             self.execute_next()
         return self.get_most_recent_result()
 
-    def execute_step(self, i: int, parameters: Dict[str, Any], selected_image: List[Any]) -> np.ndarray:
+    def execute_step(
+        self, i: int, parameters: Dict[str, Any], selected_image: List[Any]
+    ) -> np.ndarray:
         """
 
         Args:
             i: step number (0 indexed) that you want to run
 
-        Returns:
+        Returns
+        -------
 
         """
         # TODO: discuss using selected layer for all types
         step_to_run = self._definition.steps[i]
 
         image = [i.data for i in selected_image]
-        result: np.ndarray = step_to_run.execute(image, parameters or step_to_run.parameter_values)
+        result: np.ndarray = step_to_run.execute(
+            image, parameters or step_to_run.parameter_values
+        )
 
         if len(self._results) <= i:
             # this is the first time running this step
@@ -183,7 +201,8 @@ class Workflow:
         Params:
             none
 
-        Returns:
+        Returns
+        -------
             (bool): True if all WorkflowSteps have been executed, False if not
         """
         return self._next_step >= len(self._definition.steps)

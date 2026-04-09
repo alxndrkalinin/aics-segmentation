@@ -1,21 +1,22 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
-from skimage.morphology import remove_small_objects, dilation, ball
-from skimage.segmentation import watershed
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    image_smoothing_gaussian_slice_by_slice,
-)
-from aicssegmentation.core.seg_dot import dot_3d
-from aicssegmentation.core.utils import peak_local_max_wrapper
-from scipy.ndimage import distance_transform_edt
+
+import numpy as np
+from scipy.ndimage import zoom, distance_transform_edt
 from skimage.measure import label
+from skimage.morphology import ball, dilation, remove_small_objects
+from skimage.segmentation import watershed
+
+from aicssegmentation.core.utils import peak_local_max_wrapper
+from aicssegmentation.core.seg_dot import dot_3d
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    image_smoothing_gaussian_slice_by_slice,
+)
 
 
 def Workflow_cetn2(
@@ -27,7 +28,7 @@ def Workflow_cetn2(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure CETN2
+    Classic segmentation workflow wrapper for structure CETN2
 
     Parameter:
     -----------
@@ -68,27 +69,37 @@ def Workflow_cetn2(
     # PRE_PROCESSING
     ###################
     # intenisty normalization (min/max)
-    struct_img_for_seg = intensity_normalization(struct_img.copy(), scaling_param=intensity_norm_param_seg)
-    struct_img_for_peak = intensity_normalization(struct_img.copy(), scaling_param=intensity_norm_param_peak)
+    struct_img_for_seg = intensity_normalization(
+        struct_img.copy(), scaling_param=intensity_norm_param_seg
+    )
+    struct_img_for_peak = intensity_normalization(
+        struct_img.copy(), scaling_param=intensity_norm_param_peak
+    )
 
     out_img_list.append(struct_img_for_seg.copy())
     out_name_list.append("im_norm")
 
     # rescale if needed
     if rescale_ratio > 0:
-        struct_img_for_seg = zoom(struct_img_for_seg, (1, rescale_ratio, rescale_ratio), order=2)
+        struct_img_for_seg = zoom(
+            struct_img_for_seg, (1, rescale_ratio, rescale_ratio), order=2
+        )
 
         struct_img_for_seg = (struct_img_for_seg - struct_img_for_seg.min() + 1e-8) / (
             struct_img_for_seg.max() - struct_img_for_seg.min() + 1e-8
         )
 
-        struct_img_for_peak = zoom(struct_img_for_peak, (1, rescale_ratio, rescale_ratio), order=2)
-
-        struct_img_for_peak = (struct_img_for_peak - struct_img_for_peak.min() + 1e-8) / (
-            struct_img_for_peak.max() - struct_img_for_peak.min() + 1e-8
+        struct_img_for_peak = zoom(
+            struct_img_for_peak, (1, rescale_ratio, rescale_ratio), order=2
         )
 
-        gaussian_smoothing_truncate_range = gaussian_smoothing_truncate_range * rescale_ratio
+        struct_img_for_peak = (
+            struct_img_for_peak - struct_img_for_peak.min() + 1e-8
+        ) / (struct_img_for_peak.max() - struct_img_for_peak.min() + 1e-8)
+
+        gaussian_smoothing_truncate_range = (
+            gaussian_smoothing_truncate_range * rescale_ratio
+        )
 
     # smoothing with gaussian filter
     structure_img_smooth_for_seg = image_smoothing_gaussian_slice_by_slice(

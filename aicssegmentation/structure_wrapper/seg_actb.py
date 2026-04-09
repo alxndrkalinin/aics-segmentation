@@ -1,17 +1,19 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
+
+import numpy as np
+from scipy.ndimage import zoom
 from skimage.morphology import remove_small_objects
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
+
 from aicssegmentation.core.vessel import vesselness3D
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
+)
 
 
 def Workflow_actb(
@@ -23,7 +25,7 @@ def Workflow_actb(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure ACTB
+    Classic segmentation workflow wrapper for structure ACTB
 
     Parameter:
     -----------
@@ -73,7 +75,9 @@ def Workflow_actb(
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
 
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
 
     # smoothing with gaussian filter
     structure_img_smooth = edge_preserving_smoothing_3d(struct_img)
@@ -86,9 +90,15 @@ def Workflow_actb(
     ###################
 
     # vesselness 3d
-    response_1 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma_1, tau=1, whiteonblack=True)
-    response_2 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma_2, tau=1, whiteonblack=True)
-    bw = np.logical_or(response_1 > vesselness_cutoff_1, response_2 > vesselness_cutoff_2)
+    response_1 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma_1, tau=1, whiteonblack=True
+    )
+    response_2 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma_2, tau=1, whiteonblack=True
+    )
+    bw = np.logical_or(
+        response_1 > vesselness_cutoff_1, response_2 > vesselness_cutoff_2
+    )
 
     ###################
     # POST-PROCESSING

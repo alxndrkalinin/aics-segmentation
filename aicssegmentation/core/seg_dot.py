@@ -1,13 +1,14 @@
-import numpy as np
 from typing import List
+
+import numpy as np
 from scipy.ndimage import gaussian_laplace
 
 
 def dot_3d(struct_img: np.ndarray, log_sigma: float, cutoff=-1):
-    """apply 3D spot filter on a 3D image
+    """Apply 3D spot filter on a 3D image
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         the 3D image to segment
     log_sigma: float
@@ -28,10 +29,10 @@ def dot_3d(struct_img: np.ndarray, log_sigma: float, cutoff=-1):
 
 
 def dot_2d(struct_img, log_sigma, cutoff=-1):
-    """apply 2D spot filter on a 2D image
+    """Apply 2D spot filter on a 2D image
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         the 2D image to segment
     log_sigma: float
@@ -52,10 +53,10 @@ def dot_2d(struct_img, log_sigma, cutoff=-1):
 
 
 def dot_3d_wrapper(struct_img: np.ndarray, s3_param: List):
-    """wrapper for 3D spot filter
+    """Wrapper for 3D spot filter
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         a 3d numpy array, usually the image after smoothing
     s3_param: List
@@ -69,7 +70,6 @@ def dot_3d_wrapper(struct_img: np.ndarray, s3_param: List):
         "fatter" segmentation, while larger cutoff_x could be less permisive and
         yield less dots and slimmer segmentation.
     """
-
     bw = np.zeros(struct_img.shape, dtype=bool)
     for fid in range(len(s3_param)):
         log_sigma = s3_param[fid][0]
@@ -79,10 +79,10 @@ def dot_3d_wrapper(struct_img: np.ndarray, s3_param: List):
 
 
 def logSlice(image: np.ndarray, sigma_list: List, threshold: float):
-    """apply multi-scale 2D spot filter on a 2D image and binarize with threshold
+    """Apply multi-scale 2D spot filter on a 2D image and binarize with threshold
 
-    Parameters:
-    -------------
+    Parameters
+    ----------
     image: np.ndarray
         the 2D image to segment
     sigma_list: List
@@ -90,7 +90,6 @@ def logSlice(image: np.ndarray, sigma_list: List, threshold: float):
     threshold: float
         the cutoff to apply to get the binary output
     """
-
     gl_images = [-gaussian_laplace(image, s) * (s**2) for s in sigma_list]
 
     # get the mask
@@ -102,10 +101,10 @@ def logSlice(image: np.ndarray, sigma_list: List, threshold: float):
 
 
 def dot_slice_by_slice(struct_img: np.ndarray, log_sigma: float, cutoff=-1):
-    """apply 2D spot filter on 3D image slice by slice
+    """Apply 2D spot filter on 3D image slice by slice
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         a 3d numpy array, usually the image after smoothing
     log_sigma: float
@@ -119,7 +118,9 @@ def dot_slice_by_slice(struct_img: np.ndarray, log_sigma: float, cutoff=-1):
     """
     res = np.zeros_like(struct_img)
     for zz in range(struct_img.shape[0]):
-        res[zz, :, :] = -1 * (log_sigma**2) * gaussian_laplace(struct_img[zz, :, :], log_sigma)
+        res[zz, :, :] = (
+            -1 * (log_sigma**2) * gaussian_laplace(struct_img[zz, :, :], log_sigma)
+        )
 
     if cutoff < 0:
         return res
@@ -128,10 +129,10 @@ def dot_slice_by_slice(struct_img: np.ndarray, log_sigma: float, cutoff=-1):
 
 
 def dot_2d_slice_by_slice_wrapper(struct_img: np.ndarray, s2_param: List):
-    """wrapper for 2D spot filter on 3D image slice by slice
+    """Wrapper for 2D spot filter on 3D image slice by slice
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     struct_img: np.ndarray
         a 3d numpy array, usually the image after smoothing
     s2_param: List
@@ -151,6 +152,8 @@ def dot_2d_slice_by_slice_wrapper(struct_img: np.ndarray, s2_param: List):
         log_sigma = s2_param[fid][0]
         responce = np.zeros_like(struct_img)
         for zz in range(struct_img.shape[0]):
-            responce[zz, :, :] = -1 * (log_sigma**2) * gaussian_laplace(struct_img[zz, :, :], log_sigma)
+            responce[zz, :, :] = (
+                -1 * (log_sigma**2) * gaussian_laplace(struct_img[zz, :, :], log_sigma)
+            )
         bw = np.logical_or(bw, responce > s2_param[fid][1])
     return bw

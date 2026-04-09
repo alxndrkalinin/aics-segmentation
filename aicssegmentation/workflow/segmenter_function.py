@@ -1,6 +1,6 @@
 from enum import Enum
-from dataclasses import dataclass
 from typing import Dict, List, Union
+from dataclasses import dataclass
 
 
 class WidgetType(Enum):

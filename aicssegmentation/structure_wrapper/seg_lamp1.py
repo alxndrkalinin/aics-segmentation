@@ -1,19 +1,21 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
-from skimage.morphology import remove_small_objects
+
+import numpy as np
+from scipy.ndimage import zoom
 from skimage.measure import label
+from skimage.morphology import remove_small_objects
+
 from aicssegmentation.core.vessel import vesselnessSliceBySlice
 from aicssegmentation.core.seg_dot import dot_slice_by_slice
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    image_smoothing_gaussian_slice_by_slice,
-)
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    image_smoothing_gaussian_slice_by_slice,
+)
 
 
 def Workflow_lamp1(
@@ -25,7 +27,7 @@ def Workflow_lamp1(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure LAMP1
+    Classic segmentation workflow wrapper for structure LAMP1
 
     Parameter:
     -----------
@@ -45,7 +47,6 @@ def Workflow_lamp1(
             intermediate results, names of these results, the output_path, and the
             original filename (without extension) will be passed in to output_func.
     """
-
     ##########################################################################
     # PARAMETERS:
     #   note that these parameters are supposed to be fixed for the structure
@@ -75,7 +76,9 @@ def Workflow_lamp1(
     out_name_list = []
 
     # intenisty normalization
-    struct_img = intensity_normalization(struct_img, scaling_param=intensity_scaling_param)
+    struct_img = intensity_normalization(
+        struct_img, scaling_param=intensity_scaling_param
+    )
 
     out_img_list.append(struct_img.copy())
     out_name_list.append("im_norm")
@@ -83,8 +86,12 @@ def Workflow_lamp1(
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
 
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
-        gaussian_smoothing_truncate_range = gaussian_smoothing_truncate_range * rescale_ratio
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
+        gaussian_smoothing_truncate_range = (
+            gaussian_smoothing_truncate_range * rescale_ratio
+        )
 
     structure_img_smooth = image_smoothing_gaussian_slice_by_slice(
         struct_img,
@@ -106,7 +113,9 @@ def Workflow_lamp1(
     bw_spot = np.logical_or(bw_spot, bw3)
 
     # ring/filament detection
-    ves = vesselnessSliceBySlice(structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True)
+    ves = vesselnessSliceBySlice(
+        structure_img_smooth, sigmas=vesselness_sigma, tau=1, whiteonblack=True
+    )
     bw_ves = ves > vesselness_cutoff
 
     # fill holes

@@ -1,20 +1,20 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
 
-from aicssegmentation.core.seg_dot import dot_3d
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
+import numpy as np
+from scipy import ndimage
+from skimage.filters import threshold_otsu
 from skimage.morphology import remove_small_objects
+
+from aicssegmentation.core.seg_dot import dot_3d
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-
-from skimage.filters import threshold_otsu
-from scipy import ndimage
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
+)
 
 
 def Workflow_PCNA_lateS_hole_fill(
@@ -26,7 +26,7 @@ def Workflow_PCNA_lateS_hole_fill(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure pcna
+    Classic segmentation workflow wrapper for structure pcna
 
     Parameter:
     -----------
@@ -68,7 +68,9 @@ def Workflow_PCNA_lateS_hole_fill(
     ###################
     # intenisty normalization (min/max)
     struct_img = intensity_normalization(struct_img, scaling_param=intensity_norm_param)
-    struct_img_otsu = intensity_normalization(struct_img, scaling_param=intensity_norm_param_otsu)
+    struct_img_otsu = intensity_normalization(
+        struct_img, scaling_param=intensity_norm_param_otsu
+    )
 
     out_img_list.append(struct_img.copy())
     out_name_list.append("im_norm")
@@ -112,9 +114,13 @@ def Workflow_PCNA_lateS_hole_fill(
     ###################
     bw = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
     for zz in range(bw.shape[0]):
-        bw[zz, :, :] = remove_small_objects(bw[zz, :, :], min_size=3, connectivity=1, in_place=False)
+        bw[zz, :, :] = remove_small_objects(
+            bw[zz, :, :], min_size=3, connectivity=1, in_place=False
+        )
 
-    segwithholes = remove_small_objects(bw > 0, min_size=minArea, connectivity=1, in_place=False)
+    segwithholes = remove_small_objects(
+        bw > 0, min_size=minArea, connectivity=1, in_place=False
+    )
     seg = ndimage.binary_fill_holes(segwithholes).astype(int)
 
     from aicssegmentation.core.utils import remove_hot_pixel

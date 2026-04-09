@@ -16,7 +16,7 @@ def compute_3d_hessian_matrix(
     Computes the hessian matrix for an nd_array. The implementation was adapted from:
     https://github.com/ellisdg/frangi3d/blob/master/frangi/hessian.py
 
-    Parameters:
+    Parameters
     ----------
     nd_array: np.ndarray
         nd array from which to compute the hessian matrix.
@@ -42,7 +42,8 @@ def compute_3d_hessian_matrix(
 
     # compute the hessian elements
     hessian_elements = [
-        np.gradient(gradient_list[ax0], axis=ax1) for ax0, ax1 in combinations_with_replacement(range(ndim), 2)
+        np.gradient(gradient_list[ax0], axis=ax1)
+        for ax0, ax1 in combinations_with_replacement(range(ndim), 2)
     ]
 
     if sigma > 0 and scale:
@@ -50,7 +51,9 @@ def compute_3d_hessian_matrix(
         if whiteonblack:
             hessian_elements = [(sigma**2) * element for element in hessian_elements]
         else:
-            hessian_elements = [-1 * (sigma**2) * element for element in hessian_elements]
+            hessian_elements = [
+                -1 * (sigma**2) * element for element in hessian_elements
+            ]
 
     # create hessian matrix from hessian elements
     hessian_full = [[()] * ndim for x in range(ndim)]
@@ -81,8 +84,8 @@ def absolute_3d_hessian_eigenvalues(
     Eigenvalues of the hessian matrix calculated from the input array sorted by
     absolute value.
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     nd_array: np.ndarray
         nd array from which to compute the hessian matrix.
     sigma: float
@@ -97,5 +100,7 @@ def absolute_3d_hessian_eigenvalues(
     list of eigenvalues [eigenvalue1, eigenvalue2, ...]
     """
     return absolute_eigenvaluesh(
-        compute_3d_hessian_matrix(nd_array, sigma=sigma, scale=scale, whiteonblack=whiteonblack)
+        compute_3d_hessian_matrix(
+            nd_array, sigma=sigma, scale=scale, whiteonblack=whiteonblack
+        )
     )

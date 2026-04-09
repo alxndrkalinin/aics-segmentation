@@ -3,8 +3,7 @@ import matplotlib.pyplot as plt
 
 
 def sliceViewer(im: np.ndarray, zz: int):
-    """simple wrapper to view one slice of a z-stack
-
+    """Simple wrapper to view one slice of a z-stack
 
     Parameter
     -----------
@@ -35,7 +34,7 @@ def sliceViewer(im: np.ndarray, zz: int):
 
 
 def random_colormap(nn: int = 10000):
-    """generate a random colormap with nn different colors
+    """Generate a random colormap with nn different colors
 
     Parameter:
     ----------
@@ -65,7 +64,7 @@ def random_colormap(nn: int = 10000):
 
 
 def blob2dExplorer_single(im, sigma, th):
-    """backend for trying 2D spot filter on a single Z slice
+    """Backend for trying 2D spot filter on a single Z slice
 
     Parameters
     ----------
@@ -111,7 +110,7 @@ def blob2dExplorer_single(im, sigma, th):
 
 
 def fila2dExplorer_single(im, sigma, th):
-    """backend for trying 2D filament filter on a single Z slice
+    """Backend for trying 2D filament filter on a single Z slice
 
     Parameters
     ----------
@@ -157,14 +156,14 @@ def fila2dExplorer_single(im, sigma, th):
 
 
 def mipView(im):
-    """simple wrapper to view maximum intensity projection"""
+    """Simple wrapper to view maximum intensity projection"""
     mip = np.amax(im, axis=0)
     plt.imshow(mip)
     plt.show()
 
 
 def img_seg_combine(img, seg, roi=["Full", None]):
-    """creating raw and segmentation side-by-side for visualizaiton"""
+    """Creating raw and segmentation side-by-side for visualizaiton"""
     # normalize to 0~1
     img = img.astype(np.float32)
     img = (img - img.min()) / (img.max() - img.min())
@@ -186,14 +185,14 @@ def img_seg_combine(img, seg, roi=["Full", None]):
 
 
 def seg_fluo_side_by_side(im, seg, roi=["Full", None]):
-    """wrapper for displaying raw and segmentation side by side"""
+    """Wrapper for displaying raw and segmentation side by side"""
     out = img_seg_combine(im, seg, roi)
 
     return out
 
 
 def segmentation_quick_view(seg: np.ndarray):
-    """wrapper for visualizing segmentation in ITK viewer
+    """Wrapper for visualizing segmentation in ITK viewer
 
     Parameter:
     -----------
@@ -219,7 +218,7 @@ def segmentation_quick_view(seg: np.ndarray):
 
 
 def single_fluorescent_view(im):
-    """wrapper for visualizing an image stack in ITK viewer
+    """Wrapper for visualizing an image stack in ITK viewer
 
     Parameter:
     -----------
@@ -232,7 +231,6 @@ def single_fluorescent_view(im):
     >>> view(single_fluorescent_view(im))
 
     """
-
     assert len(im.shape) == 3
 
     im = im.astype(np.float32)

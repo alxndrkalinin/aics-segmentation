@@ -1,7 +1,8 @@
 from pathlib import Path
+
 import numpy as np
-from skimage.morphology import erosion, ball
 import tifffile as tiff
+from skimage.morphology import ball, erosion
 
 
 def _save_tiff(data: np.ndarray, output_file: Path) -> None:
@@ -17,10 +18,10 @@ def save_segmentation(
     fn: str,
     suffix: str = "_struct_segmentation",
 ):
-    """save the segmentation into a tiff file
+    """Save the segmentation into a tiff file
 
-    Parameters:
-    ------------
+    Parameters
+    ----------
     bw: np.ndarray
         the segmentation to save
     contour_flag: book
@@ -43,8 +44,7 @@ def save_segmentation(
 
 
 def generate_segmentation_contour(im):
-    """generate the contour of the segmentation"""
-
+    """Generate the contour of the segmentation"""
     bd = np.logical_xor(erosion(im > 0, footprint=ball(1)), im > 0)
 
     bd = bd.astype(np.uint8)
@@ -54,7 +54,7 @@ def generate_segmentation_contour(im):
 
 
 def output_hook(im, names, out_flag, output_path, fn):
-    """general hook for cutomized output"""
+    """General hook for cutomized output"""
     assert len(im) == len(names) and len(names) == len(out_flag)
 
     for i in range(len(out_flag)):
@@ -63,6 +63,8 @@ def output_hook(im, names, out_flag, output_path, fn):
                 segmentation_type = names[i]
                 bw = im[i].astype(np.uint8)
                 bw[bw > 0] = 255
-                _save_tiff(bw, output_path / (fn + "_bw_" + segmentation_type[3:] + ".tiff"))
+                _save_tiff(
+                    bw, output_path / (fn + "_bw_" + segmentation_type[3:] + ".tiff")
+                )
             else:
                 _save_tiff(im[i], output_path / (fn + "_" + names[i] + ".tiff"))

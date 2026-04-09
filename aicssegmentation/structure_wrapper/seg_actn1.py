@@ -1,17 +1,19 @@
-import numpy as np
 from typing import Union
 from pathlib import Path
+
+import numpy as np
+from scipy.ndimage import zoom
 from skimage.morphology import remove_small_objects
-from aicssegmentation.core.pre_processing_utils import (
-    intensity_normalization,
-    edge_preserving_smoothing_3d,
-)
+
 from aicssegmentation.core.vessel import vesselness3D
 from aicssegmentation.core.output_utils import (
     save_segmentation,
     generate_segmentation_contour,
 )
-from scipy.ndimage import zoom
+from aicssegmentation.core.pre_processing_utils import (
+    intensity_normalization,
+    edge_preserving_smoothing_3d,
+)
 
 
 def Workflow_atcn1(
@@ -23,7 +25,7 @@ def Workflow_atcn1(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure ACTN1 accounting for typo
+    Classic segmentation workflow wrapper for structure ACTN1 accounting for typo
 
     Parameter:
     -----------
@@ -44,7 +46,9 @@ def Workflow_atcn1(
             original filename (without extension) will be passed in to output_func.
     """
     # there was a typo, reproduced here to keep any code relying on the typo working
-    return Workflow_actn1(struct_img, rescale_ratio, output_type, output_path, fn, output_func)
+    return Workflow_actn1(
+        struct_img, rescale_ratio, output_type, output_path, fn, output_func
+    )
 
 
 def Workflow_actn1(
@@ -56,7 +60,7 @@ def Workflow_actn1(
     output_func=None,
 ):
     """
-    classic segmentation workflow wrapper for structure ACTN1
+    Classic segmentation workflow wrapper for structure ACTN1
 
     Parameter:
     -----------
@@ -104,7 +108,9 @@ def Workflow_actn1(
     # rescale if needed
     if rescale_ratio > 0:
         struct_img = zoom(struct_img, (1, rescale_ratio, rescale_ratio), order=2)
-        struct_img = (struct_img - struct_img.min() + 1e-8) / (struct_img.max() - struct_img.min() + 1e-8)
+        struct_img = (struct_img - struct_img.min() + 1e-8) / (
+            struct_img.max() - struct_img.min() + 1e-8
+        )
 
     # smoothing
     structure_img_smooth = edge_preserving_smoothing_3d(struct_img)
@@ -117,9 +123,15 @@ def Workflow_actn1(
     ###################
 
     # vesselness 3d
-    response_1 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma_1, tau=1, whiteonblack=True)
-    response_2 = vesselness3D(structure_img_smooth, sigmas=vesselness_sigma_2, tau=1, whiteonblack=True)
-    bw = np.logical_or(response_1 > vesselness_cutoff_1, response_2 > vesselness_cutoff_2)
+    response_1 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma_1, tau=1, whiteonblack=True
+    )
+    response_2 = vesselness3D(
+        structure_img_smooth, sigmas=vesselness_sigma_2, tau=1, whiteonblack=True
+    )
+    bw = np.logical_or(
+        response_1 > vesselness_cutoff_1, response_2 > vesselness_cutoff_2
+    )
 
     ###################
     # POST-PROCESSING

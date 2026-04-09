@@ -1,12 +1,14 @@
+from typing import List, Union
+from pathlib import Path
+
 import numpy as np
 
-from typing import List, Union
 from aicssegmentation.exceptions import ArgumentNullError
+
 from .workflow import Workflow
 from .batch_workflow import BatchWorkflow
-from .workflow_definition import WorkflowDefinition
 from .workflow_config import WorkflowConfig
-from pathlib import Path
+from .workflow_definition import WorkflowDefinition
 
 
 class WorkflowEngine:
@@ -26,7 +28,9 @@ class WorkflowEngine:
         """
         return self._workflow_definitions
 
-    def get_executable_workflow(self, workflow_name: str, input_image: np.ndarray) -> Workflow:
+    def get_executable_workflow(
+        self, workflow_name: str, input_image: np.ndarray
+    ) -> Workflow:
         """
         Get an executable workflow object
 
@@ -44,7 +48,11 @@ class WorkflowEngine:
         return Workflow(definition, input_image)
 
     def get_executable_batch_workflow(
-        self, workflow_name: str, input_dir: str, output_dir: str, channel_index: int = 0
+        self,
+        workflow_name: str,
+        input_dir: str,
+        output_dir: str,
+        channel_index: int = 0,
     ):
         """
         Get an executable BatchWorkflow object
@@ -81,7 +89,9 @@ class WorkflowEngine:
         if file_path is None:
             raise ArgumentNullError("file_path")
 
-        definition = self._workflow_config.get_workflow_definition_from_config_file(Path(file_path))
+        definition = self._workflow_config.get_workflow_definition_from_config_file(
+            Path(file_path)
+        )
         return Workflow(definition, input_image)
 
     def get_executable_batch_workflow_from_config_file(
@@ -107,16 +117,24 @@ class WorkflowEngine:
         if output_dir is None:
             raise ArgumentNullError("output_dir")
 
-        definition = self._workflow_config.get_workflow_definition_from_config_file(Path(file_path))
+        definition = self._workflow_config.get_workflow_definition_from_config_file(
+            Path(file_path)
+        )
         return BatchWorkflow(definition, input_dir, output_dir, channel_index)
 
-    def save_workflow_definition(self, workflow_definition: WorkflowDefinition, output_file_path: Union[str, Path]):
+    def save_workflow_definition(
+        self,
+        workflow_definition: WorkflowDefinition,
+        output_file_path: Union[str, Path],
+    ):
         if workflow_definition is None:
             raise ArgumentNullError("workflow_definition")
         if output_file_path is None:
             raise ArgumentNullError("file_path")
 
-        self._workflow_config.save_workflow_definition_as_json(workflow_definition, output_file_path)
+        self._workflow_config.save_workflow_definition_as_json(
+            workflow_definition, output_file_path
+        )
 
     def _load_workflow_definitions(self) -> List[WorkflowDefinition]:
         definitions = list()
@@ -126,7 +144,9 @@ class WorkflowEngine:
         return definitions
 
     def _get_workflow_definition(self, workflow_name: str) -> WorkflowDefinition:
-        definition = next(filter(lambda d: d.name == workflow_name, self._workflow_definitions), None)
+        definition = next(
+            filter(lambda d: d.name == workflow_name, self._workflow_definitions), None
+        )
         if definition is None:
             raise ValueError(
                 f"No available workflow definition found for {workflow_name}. Specify a valid workflow name."

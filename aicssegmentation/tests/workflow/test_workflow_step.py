@@ -1,12 +1,12 @@
-from aicssegmentation.workflow.segmenter_function import FunctionParameter, WidgetType
-import pytest
 import numpy as np
+import pytest
 
 from aicssegmentation.workflow.workflow_step import (
     WorkflowStep,
-    WorkflowStepCategory,
     SegmenterFunction,
+    WorkflowStepCategory,
 )
+from aicssegmentation.workflow.segmenter_function import WidgetType, FunctionParameter
 
 
 class TestWorkflowStep:
@@ -18,7 +18,12 @@ class TestWorkflowStep:
             function="intensity_normalization",
             module="aicssegmentation.core.pre_processing_utils",
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
 
         assert step.name == function_name
 
@@ -30,7 +35,12 @@ class TestWorkflowStep:
             function="function_single_input",
             module="aicssegmentation.tests.workflow.mock_module",
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
         img = np.ones((75, 200, 200))
 
         # Act / Assert
@@ -45,7 +55,12 @@ class TestWorkflowStep:
             function="function_single_input",
             module="aicssegmentation.not_a_module",
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
         img = np.ones((75, 200, 200))
 
         # Act / Assert
@@ -60,7 +75,12 @@ class TestWorkflowStep:
             function="not_a_function",
             module="aicssegmentation.tests.workflow.mock_module",
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
 
         img = np.ones((75, 200, 200))
 
@@ -76,7 +96,12 @@ class TestWorkflowStep:
             function="not_a_function",
             module="aicssegmentation.tests.workflow.mock_module",
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
 
         img = np.ones((75, 200, 200))
 
@@ -96,7 +121,12 @@ class TestWorkflowStep:
                 "y": FunctionParameter("y", WidgetType.SLIDER, "int"),
             },
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
         img = np.ones((75, 200, 200))
         params = {"a": 1, "b": 2}
 
@@ -116,7 +146,12 @@ class TestWorkflowStep:
                 "y": FunctionParameter("y", WidgetType.SLIDER, "int"),
             },
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
         img = np.ones((75, 200, 200))
         params = {"x": 5, "y": 10}
 
@@ -134,7 +169,12 @@ class TestWorkflowStep:
             function="function_list_input",
             module="aicssegmentation.tests.workflow.mock_module",
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
         img1 = np.ones((75, 200, 200))
         img2 = np.ones((75, 200, 200))
 
@@ -156,7 +196,12 @@ class TestWorkflowStep:
                 "y": FunctionParameter("y", WidgetType.SLIDER, "int"),
             },
         )
-        step = WorkflowStep(category=WorkflowStepCategory.PRE_PROCESSING, function=function, step_number=1, parent=[0])
+        step = WorkflowStep(
+            category=WorkflowStepCategory.PRE_PROCESSING,
+            function=function,
+            step_number=1,
+            parent=[0],
+        )
         img1 = np.ones((75, 200, 200))
         img2 = np.ones((75, 200, 200))
         params = {"x": 5, "y": 10}
