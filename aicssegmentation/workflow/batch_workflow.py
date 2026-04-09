@@ -1,10 +1,13 @@
-import numpy as np
-
-from datetime import datetime
 from typing import List, Union
 from pathlib import Path
-from aicssegmentation.util.filesystem import FileSystemUtilities
+from datetime import datetime
+
+import numpy as np
+import tifffile
+
 from aicssegmentation.exceptions import ArgumentNullError
+from aicssegmentation.util.filesystem import FileSystemUtilities
+
 from .workflow import Workflow
 from .workflow_definition import WorkflowDefinition
 
@@ -42,13 +45,17 @@ class BatchWorkflow:
         self._channel_index = channel_index
         self._processed_files: int = 0
         self._failed_files: int = 0
-        self._log_path: Path = self._output_dir / f"log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        self._log_path: Path = (
+            self._output_dir / f"log_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        )
 
         # Create the output directory at output_dir if it does not exist already
         if not self._output_dir.exists():
             FileSystemUtilities.create_directory(self._output_dir)
 
-        self._input_files = self._get_input_files(self._input_dir, SUPPORTED_FILE_EXTENSIONS)
+        self._input_files = self._get_input_files(
+            self._input_dir, SUPPORTED_FILE_EXTENSIONS
+        )
         self._execute_generator = self._execute_generator_func()
 
     @property
@@ -78,7 +85,8 @@ class BatchWorkflow:
         Use this to know when the batch workflow is complete if manually executing the workflow
         with execute_next()
 
-        Returns:
+        Returns
+        -------
             (bool): True if all files/steps have been executed, False if not
         """
         return self._processed_files == self.total_files
@@ -96,7 +104,9 @@ class BatchWorkflow:
 
         self.write_log_file_summary()
 
-        print(f"Batch workflow complete. Check {self._log_path} for output log and summary.")
+        print(
+            f"Batch workflow complete. Check {self._log_path} for output log and summary."
+        )
 
     def execute_next(self):
         if self.is_done():
@@ -107,7 +117,6 @@ class BatchWorkflow:
 
     def _execute_generator_func(self):
         from aicsimageio import AICSImage  # lazy — only needed for batch file reading
-        from aicsimageio.writers import OmeTiffWriter  # lazy — only needed for batch file writing
 
         for f in self._input_files:
             try:
@@ -126,7 +135,7 @@ class BatchWorkflow:
                 # Save output
                 output_path = self._output_dir / f"{f.stem}.segmentation.tiff"
                 result = workflow.get_most_recent_result()
-                OmeTiffWriter.save(data=self._format_output(result), uri=output_path, dim_order="ZYX")
+                tifffile.imwrite(output_path, self._format_output(result))
 
                 msg = f"SUCCESS: {f}. Output saved at {output_path}"
                 print(msg)
@@ -166,7 +175,8 @@ class BatchWorkflow:
         Params:
             image_path (AICSImage): image to format
 
-        Returns:
+        Returns
+        -------
             np.ndarray: segment-able image for aics-segmentation
         """
         if len(image.scenes) > 1:
@@ -187,7 +197,8 @@ class BatchWorkflow:
         Params:
             image (np.ndarray): segmented image
 
-        Returns:
+        Returns
+        -------
             np.ndarray: image converted to uint8 for saving
         """
         image = image.astype(np.uint8)

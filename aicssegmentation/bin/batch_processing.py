@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import os
 import sys
 import logging
-import argparse
-import traceback
-import importlib
 import pathlib
+import argparse
+import importlib
+import traceback
 from glob import glob
-import aicsimageio
+
+import numpy as np
 
 ###############################################################################
 # Global Objects
@@ -19,7 +19,9 @@ PER_DIR = "per_dir"
 PER_CSV = "per_csv"
 
 log = logging.getLogger()
-logging.basicConfig(level=logging.INFO, format="[%(levelname)4s:%(lineno)4s %(asctime)s] %(message)s")
+logging.basicConfig(
+    level=logging.INFO, format="[%(levelname)4s:%(lineno)4s %(asctime)s] %(message)s"
+)
 #
 # Set the default log level for other modules used by this script
 # logging.getLogger("labkey").setLevel(logging.ERROR)
@@ -131,7 +133,9 @@ class Args(object):
             default="default",
             help="how to output the results, mostly used options are default or array",
         )
-        p.add_argument("--mitotic_stage", dest="mitotic_stage", default=None, help="mitotic_stage")
+        p.add_argument(
+            "--mitotic_stage", dest="mitotic_stage", default=None, help="mitotic_stage"
+        )
         p.add_argument(
             "--dask",
             action="store_true",
@@ -189,9 +193,19 @@ class Executor(object):
                 self.rescale_ratio = -1
 
     def segment(self, fn, args, output_path):
-        if os.path.exists(str(output_path / (os.path.splitext(os.path.basename(fn))[0] + "_struct_segmentation.tiff"))):
+        if os.path.exists(
+            str(
+                output_path
+                / (
+                    os.path.splitext(os.path.basename(fn))[0]
+                    + "_struct_segmentation.tiff"
+                )
+            )
+        ):
             print(f"skipping {fn} ....")
             return
+
+        import aicsimageio  # lazy — only needed when io extra is installed
 
         image_reader = aicsimageio.AICSImage(fn)
         img = image_reader.data
@@ -244,7 +258,9 @@ class Executor(object):
             args.workflow_name = args.struct_name
         try:
             if args.wrapper_dir == "_internal_":
-                module_name = "aicssegmentation.structure_wrapper.seg_" + args.workflow_name
+                module_name = (
+                    "aicssegmentation.structure_wrapper.seg_" + args.workflow_name
+                )
                 seg_module = importlib.import_module(module_name)
             else:
                 func_path = args.wrapper_dir
@@ -273,6 +289,8 @@ class Executor(object):
         ##########################################################################
         batch_mode = False
         if args.mode == PER_IMAGE:
+            import aicsimageio  # lazy — only needed when io extra is installed
+
             fname = os.path.basename(os.path.splitext(args.input_fname)[0])
 
             image_reader = aicsimageio.AICSImage(args.input_fname)
@@ -291,7 +309,9 @@ class Executor(object):
             #     struct_img =struct_img * mseg_img
 
             if args.mitotic_stage is None:
-                self.SegModule(struct_img, self.rescale_ratio, args.output_type, output_path, fname)
+                self.SegModule(
+                    struct_img, self.rescale_ratio, args.output_type, output_path, fname
+                )
             else:
                 self.SegModule(
                     struct_img,
